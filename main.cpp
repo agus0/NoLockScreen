@@ -8,16 +8,14 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
-
-#define LOCKSCREENDISABLE "REG ADD HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\Personalization /v NoLockScreen /t REG_DWORD /d 1 /f"
-#define LOCKSCREENENABLE  "REG ADD HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\Personalization /v NoLockScreen /t REG_DWORD /d 0 /f"
+#include <windows.h>
 
 using namespace std;
 
 void lockScreen (bool enable);
 
 int main(int argc, char **argv) {
-    string command = (string)argv[0];
+    string command = (string)argv[1];
     int    estado = 2;
     if (command == "enable") {
         lockScreen(true);
@@ -39,10 +37,17 @@ int main(int argc, char **argv) {
 }
 
 void lockScreen (bool enable) {
-    if (enable) {
-        system(LOCKSCREENENABLE);
-    }else{
-        system(LOCKSCREENDISABLE);
-    }
+    HKEY hKey;
+    DWORD value;
 
+    RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Policies\\Microsoft\\Windows\\Personalization", 0, KEY_ALL_ACCESS, &hKey);
+    if (enable) {
+        value = 0;
+        cout << endl << "LockScreen activado." << endl;
+    }else{
+        value = 1;
+        cout << endl << "LockScreen desactivado." << endl;
+    }
+    RegSetValueEx(hKey, TEXT("NoLockScreen"), 0, REG_DWORD, (const BYTE*)&value, sizeof(value));
+    RegCloseKey(hKey);
 }
